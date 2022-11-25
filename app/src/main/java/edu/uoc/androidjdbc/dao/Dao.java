@@ -1,15 +1,21 @@
 package edu.uoc.androidjdbc.dao;
 
+import android.os.AsyncTask;
+import android.util.Log;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import edu.uoc.androidjdbc.model.Persona;
 
-public class Dao {
+public class Dao extends AsyncTask<Void, Void, Map<String, String>> {
     private Connection conexion;
 
     //Constantes. Deberan estar en una clase de constanes en el pck utils
@@ -21,6 +27,8 @@ public class Dao {
     public static final String PASS_CONNECTION = "2wiamedt";
 
     public static final String GET_ALL_PERSONAS = "select * from persona";
+
+    List<Persona> people = new ArrayList<>();
 
     public void connectar() throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class.forName("org.gjt.mm.mysql.Driver").newInstance();
@@ -49,5 +57,47 @@ public class Dao {
             }
         }
         return personaList;
+    }
+
+    @Override
+    protected Map<String, String> doInBackground(Void... voids) {
+        Map<String, String> info = new HashMap<>();
+        String sql = "select * from persona";
+        //Opcio prepareStatement
+        //PreparedStatement statement = connection.prepareStatement(sql);
+        //ResultSet resultSet = statement.executeQuery();
+
+        //Opcio createStatement
+        Statement statement = null;
+        try {
+            statement = conexion.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+
+            while (resultSet.next()) {
+
+                info.put("id", resultSet.getString("id"));
+                info.put("DNI", resultSet.getString("DNI"));
+                info.put("nom", resultSet.getString("nom"));
+                info.put("cognoms", resultSet.getString("cognoms"));
+                info.put("direccio", resultSet.getString("direccio"));
+
+                System.out.println("DATA2: " + resultSet.getInt(1) +
+                        resultSet.getString(2) +
+                        resultSet.getString(3) +
+                        resultSet.getString(4) +
+                        resultSet.getString(5));
+
+                people.add(new Persona(resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5)));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return info;
     }
 }
