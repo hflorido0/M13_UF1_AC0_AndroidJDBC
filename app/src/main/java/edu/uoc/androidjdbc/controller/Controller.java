@@ -9,10 +9,6 @@ public class Controller {
 
     public void init() throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Dao dao = new Dao();
-        dao.connectar();
-        for (Persona s : dao.getAll()) {
-            System.out.println(s);
-        }
-        dao.desconectar();
+        new Dao().execute();
     }
 }

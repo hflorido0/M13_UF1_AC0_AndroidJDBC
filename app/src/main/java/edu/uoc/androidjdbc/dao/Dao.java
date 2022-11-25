@@ -1,7 +1,6 @@
 package edu.uoc.androidjdbc.dao;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,7 +15,6 @@ import java.util.Map;
 import edu.uoc.androidjdbc.model.Persona;
 
 public class Dao extends AsyncTask<Void, Void, Map<String, String>> {
-    private Connection conexion;
 
     //Constantes. Deberan estar en una clase de constanes en el pck utils
     public static final String SCHEMA_NAME = "edtwiam";
@@ -30,48 +28,14 @@ public class Dao extends AsyncTask<Void, Void, Map<String, String>> {
 
     List<Persona> people = new ArrayList<>();
 
-    public void connectar() throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException {
-        Class.forName("org.gjt.mm.mysql.Driver").newInstance();
-        String url = CONNECTION;
-        String user = USER_CONNECTION;
-        String pass = PASS_CONNECTION;
-        conexion = DriverManager.getConnection(url, user, pass);
-    }
-
-    public void desconectar() throws SQLException {
-        if (conexion != null) {
-            conexion.close();
-        }
-    }
-
-    public ArrayList<Persona> getAll() throws SQLException {
-        ArrayList<Persona> personaList = new ArrayList<>();
-
-        try (Statement st = conexion.createStatement()) {
-            try (ResultSet rs = st.executeQuery(GET_ALL_PERSONAS)) {
-                while (rs.next()) {
-                    Persona persona = new Persona(rs.getInt(1), rs.getString(2),
-                            rs.getString(3), rs.getString(4), rs.getString(5));
-                    personaList.add(persona);
-                }
-            }
-        }
-        return personaList;
-    }
-
     @Override
     protected Map<String, String> doInBackground(Void... voids) {
         Map<String, String> info = new HashMap<>();
-        String sql = "select * from persona";
-        //Opcio prepareStatement
-        //PreparedStatement statement = connection.prepareStatement(sql);
-        //ResultSet resultSet = statement.executeQuery();
 
-        //Opcio createStatement
         Statement statement = null;
-        try {
-            statement = conexion.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+        try (Connection connection = DriverManager.getConnection(CONNECTION, USER_CONNECTION, PASS_CONNECTION)) {
+            statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(GET_ALL_PERSONAS);
 
             while (resultSet.next()) {
 
@@ -93,7 +57,6 @@ public class Dao extends AsyncTask<Void, Void, Map<String, String>> {
                         resultSet.getString(4),
                         resultSet.getString(5)));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
